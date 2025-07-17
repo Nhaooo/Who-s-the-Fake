@@ -4,185 +4,695 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Who's the Fake - Jeu d'imposteur</title>
-    <!-- Déployé sur GitHub Pages -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
+        :root {
+            --primary-color: #4361ee;
+            --primary-light: #4895ef;
+            --secondary-color: #4cc9f0;
+            --accent-color: #f72585;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --dark-color: #2b2d42;
+            --light-color: #f8f9fa;
+            --text-color: #2b2d42;
+            --text-light: #6c757d;
+            --background-color: #f8f9fa;
+            --card-background: #ffffff;
+            --border-radius: 16px;
+            --border-radius-sm: 8px;
+            --box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            --box-shadow-sm: 0 5px 15px rgba(0,0,0,0.05);
+            --transition: all 0.3s ease;
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
+        
         body {
-            font-family: Arial, sans-serif;
-            max-width: 100%;
-            margin: 0 auto;
-            padding: 10px;
-            background-color: #f5f5f5;
+            font-family: var(--font-family);
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-color);
             touch-action: manipulation;
+            line-height: 1.6;
         }
+        
         .container {
-            background-color: white;
-            border-radius: 8px;
-            padding: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            max-width: 500px;
-            margin: 0 auto;
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            padding: 40px;
+            box-shadow: var(--box-shadow);
+            max-width: 600px;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            animation: fadeIn 0.8s ease;
         }
+        
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color), var(--accent-color));
+            animation: gradientShift 8s infinite linear;
+            background-size: 200% 100%;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
         h1 {
-            color: #333;
+            color: var(--dark-color);
             text-align: center;
-            font-size: 1.8rem;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            position: relative;
+            padding-bottom: 15px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
         }
+        
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            border-radius: 2px;
+        }
+        
         h3 {
-            color: #555;
-            margin-top: 15px;
-            margin-bottom: 8px;
-            font-size: 1.2rem;
+            color: var(--dark-color);
+            margin: 20px 0 15px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            font-weight: 600;
         }
+        
+        h3 i {
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+        
         .form-group {
-            margin-bottom: 12px;
+            margin-bottom: 25px;
+            position: relative;
         }
+        
         label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--dark-color);
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
         }
-        input, button {
+        
+        label i {
+            margin-right: 8px;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+        
+        input {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 16px;
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius-sm);
             font-size: 16px;
-            box-sizing: border-box;
+            transition: var(--transition);
+            background-color: white;
+            color: var(--text-color);
         }
+        
+        input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.15);
+            outline: none;
+        }
+        
+        input::placeholder {
+            color: var(--text-light);
+            opacity: 0.7;
+        }
+        
+        input.highlight {
+            animation: highlightInput 1s ease;
+        }
+        
+        @keyframes highlightInput {
+            0% { background-color: rgba(76, 201, 240, 0.3); }
+            100% { background-color: white; }
+        }
+        
         button {
-            background-color: #4CAF50;
-            color: white;
+            width: 100%;
+            padding: 16px;
             border: none;
+            border-radius: var(--border-radius-sm);
+            font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
-            margin-top: 8px;
-            transition: background-color 0.3s;
-            font-weight: bold;
-            height: 45px;
+            transition: var(--transition);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
         }
-        button:hover {
-            background-color: #45a049;
+        
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(-100%);
+            transition: transform 0.4s ease;
+            z-index: -1;
         }
+        
+        button:hover::before {
+            transform: translateX(0);
+        }
+        
+        button i {
+            margin-right: 10px;
+            font-size: 1.1em;
+        }
+        
+        .primary-btn {
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+        }
+        
+        .primary-btn:hover {
+            background-color: #3a56d4;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(67, 97, 238, 0.4);
+        }
+        
+        .secondary-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            box-shadow: 0 4px 15px rgba(76, 201, 240, 0.3);
+        }
+        
+        .secondary-btn:hover {
+            background-color: #3ab7dc;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(76, 201, 240, 0.4);
+        }
+        
         button:disabled {
-            background-color: #cccccc;
+            background-color: #dee2e6;
+            color: #adb5bd;
             cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
+        
+        button:disabled::before {
+            display: none;
+        }
+        
+        button.loading {
+            position: relative;
+            pointer-events: none;
+        }
+        
+        button.loading .button-text {
+            visibility: hidden;
+        }
+        
+        button.loading::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            top: 50%;
+            left: 50%;
+            margin-top: -10px;
+            margin-left: -10px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s infinite linear;
+        }
+        
         .button-row {
             display: flex;
-            gap: 10px;
+            gap: 15px;
+            margin-bottom: 25px;
         }
-        .button-row button {
-            flex: 1;
-        }
+        
         .result {
-            margin-top: 15px;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background-color: #f9f9f9;
-            min-height: 60px;
+            margin-top: 25px;
+            padding: 18px;
+            border-radius: var(--border-radius-sm);
+            background-color: var(--light-color);
             display: none;
+            animation: fadeIn 0.5s ease;
+            box-shadow: var(--box-shadow-sm);
         }
+        
         .word-display {
-            font-size: 24px;
+            font-size: 32px;
             text-align: center;
-            margin: 15px 0;
-            padding: 15px;
-            background-color: #e9f7ef;
-            border-radius: 4px;
+            margin: 30px 0;
+            padding: 25px;
+            background: linear-gradient(135deg, #e8f8f5, #d1f2eb);
+            border-radius: var(--border-radius);
             display: none;
-            font-weight: bold;
+            animation: slideIn 0.5s ease, pulse 2s infinite ease-in-out;
+            font-weight: 700;
+            box-shadow: var(--box-shadow);
+            color: var(--dark-color);
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
         }
+        
+        .word-display::before {
+            content: '🎭';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 20px;
+            opacity: 0.5;
+            animation: bounce 2s infinite ease-in-out;
+        }
+        
+        .word-display::after {
+            content: '🎭';
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-size: 20px;
+            opacity: 0.5;
+            animation: bounce 2s infinite ease-in-out 0.5s;
+        }
+        
         .players-list {
-            margin-top: 15px;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background-color: #f0f8ff;
+            margin-top: 30px;
+            padding: 0;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--box-shadow);
+            background-color: white;
         }
+        
+        .players-list-header {
+            background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+            color: white;
+            padding: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .players-list-header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: shimmer 3s infinite;
+        }
+        
+        .players-count {
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .players-count i {
+            font-size: 1.2rem;
+        }
+        
         .players-list ul {
             list-style-type: none;
             padding: 0;
             margin: 0;
+            background-color: white;
+            max-height: 300px;
+            overflow-y: auto;
         }
+        
         .players-list li {
-            padding: 8px 0;
+            padding: 18px;
             border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            transition: var(--transition);
+            gap: 15px;
         }
+        
+        .players-list li:hover {
+            background-color: #f8f9fa;
+        }
+        
         .players-list li:last-child {
             border-bottom: none;
         }
-        .players-list .current-player {
-            font-weight: bold;
-            color: #4CAF50;
+        
+        .animal-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-light), var(--secondary-color));
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            flex-shrink: 0;
         }
+        
+        .player-name {
+            font-weight: 600;
+            font-size: 16px;
+            flex: 1;
+        }
+        
+        .player-id {
+            font-size: 12px;
+            color: var(--text-light);
+            opacity: 0.7;
+            background-color: var(--light-color);
+            padding: 4px 8px;
+            border-radius: 12px;
+        }
+        
+        .current-player {
+            background-color: rgba(76, 201, 240, 0.1);
+            border-left: 4px solid var(--secondary-color);
+        }
+        
+        .current-player .animal-icon {
+            background: linear-gradient(135deg, var(--secondary-color), var(--success-color));
+        }
+        
+        /* Supprimé car remplacé par .animal-icon */
+        
         .status {
-            color: #666;
+            color: var(--text-light);
             font-style: italic;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
         }
+        
+        .status::before {
+            content: '\f254'; /* fa-hourglass */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            color: var(--primary-light);
+            animation: spin 2s infinite linear;
+            display: inline-block;
+        }
+        
+        .loading-dots::after {
+            content: '';
+            animation: loadingDots 1.5s infinite;
+        }
+        
+        @keyframes loadingDots {
+            0% { content: '.'; }
+            33% { content: '..'; }
+            66% { content: '...'; }
+            100% { content: '.'; }
+        }
+        
         .error {
-            color: #d9534f;
+            color: var(--danger-color);
+            background-color: rgba(231, 76, 60, 0.1);
+            border-left: 4px solid var(--danger-color);
+            padding: 15px;
+            border-radius: var(--border-radius-sm);
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
+        
+        .error::before {
+            content: '\f071'; /* fa-exclamation-triangle */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            color: var(--danger-color);
+        }
+        
         .success {
-            color: #5cb85c;
+            color: var(--success-color);
+            background-color: rgba(46, 204, 113, 0.1);
+            border-left: 4px solid var(--success-color);
+            padding: 15px;
+            border-radius: var(--border-radius-sm);
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
+        
+        .success::before {
+            content: '\f00c'; /* fa-check */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            color: var(--success-color);
+        }
+        
         .hidden {
             display: none;
         }
-        @media (max-width: 600px) {
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: var(--box-shadow); }
+            50% { transform: scale(1.02); box-shadow: 0 15px 35px rgba(0,0,0,0.15); }
+            100% { transform: scale(1); box-shadow: var(--box-shadow); }
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        
+        /* Tooltip pour l'ID du joueur - masqué car nous n'affichons plus l'ID */
+        .player-id {
+            position: relative;
+            cursor: help;
+            display: none; /* Masquer complètement l'ID du joueur */
+        }
+        
+        /* Notification de nouveau joueur */
+        @keyframes highlightNew {
+            0% { background-color: rgba(46, 204, 113, 0.3); }
+            100% { background-color: transparent; }
+        }
+        
+        .new-player {
+            animation: highlightNew 2s ease-out;
+        }
+        
+        /* Indicateur de chargement */
+        .loader {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s infinite linear;
+            margin-right: 10px;
+        }
+        
+        /* Footer */
+        .app-footer {
+            margin-top: 30px;
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        .emoji {
+            font-size: 1.2rem;
+            vertical-align: middle;
+            margin: 0 3px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
             body {
-                padding: 5px;
+                padding: 15px;
             }
+            
             .container {
+                padding: 30px;
+                max-width: 100%;
+            }
+            
+            h1 {
+                font-size: 2rem;
+                margin-bottom: 25px;
+            }
+            
+            .button-row {
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            .word-display {
+                font-size: 28px;
+                padding: 20px;
+                margin: 25px 0;
+            }
+            
+            .players-list li {
+                padding: 15px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
                 padding: 10px;
             }
-            h1 {
-                font-size: 1.5rem;
+            
+            .container {
+                padding: 20px;
+                border-radius: var(--border-radius-sm);
             }
+            
+            h1 {
+                font-size: 1.8rem;
+                margin-bottom: 20px;
+            }
+            
+            input {
+                padding: 14px;
+            }
+            
             button {
-                height: 50px;
+                padding: 14px;
+            }
+            
+            .word-display {
+                font-size: 24px;
+                padding: 15px;
+            }
+            
+            .player-id {
+                display: none;
+            }
+            
+            .animal-icon {
+                width: 35px;
+                height: 35px;
+                font-size: 16px;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Who's the Fake</h1>
+        <h1><i class="fas fa-mask"></i> Who's the Fake <span class="emoji">🎭</span></h1>
         
         <div class="form-group hidden" id="server-url-group">
-            <label for="server-url">URL du serveur:</label>
+            <label for="server-url"><i class="fas fa-server"></i> URL du serveur:</label>
             <input type="text" id="server-url" value="https://who-s-the-fake.onrender.com" placeholder="URL du serveur Render">
         </div>
         
         <div class="form-group">
-            <label for="session-id">Code de session (5 chiffres):</label>
-            <input type="text" id="session-id" value="" placeholder="Entrez un code à 5 chiffres" maxlength="5" pattern="\d{5}" inputmode="numeric">
+            <label for="session-id"><i class="fas fa-hashtag"></i> Code de session (5 chiffres):</label>
+            <input type="text" id="session-id" value="" placeholder="Entrez un code à 5 chiffres" maxlength="5" pattern="\d{5}" inputmode="numeric" autocomplete="off">
         </div>
         
         <div class="button-row">
-            <button id="generate-session-btn">Générer un code</button>
-            <button id="join-btn">Rejoindre</button>
+            <button id="generate-session-btn" class="primary-btn"><i class="fas fa-dice"></i> Générer un code</button>
+            <button id="join-btn" class="secondary-btn"><i class="fas fa-sign-in-alt"></i> Rejoindre</button>
         </div>
         
         <div class="form-group hidden" id="player-id-group">
-            <label for="player-id">ID du joueur:</label>
+            <label for="player-id"><i class="fas fa-fingerprint"></i> ID du joueur:</label>
             <input type="text" id="player-id" readonly>
         </div>
         
-        <button id="get-word-btn" disabled>Récupérer mon mot</button>
+        <button id="get-word-btn" class="primary-btn" disabled><i class="fas fa-key"></i> <span class="button-text">Récupérer mon mot</span></button>
         
         <div class="word-display" id="word-display"></div>
         
         <div class="players-list" id="players-list">
-            <h3>Joueurs connectés</h3>
+            <div class="players-list-header">
+                <div class="players-count"><i class="fas fa-users"></i> Joueurs connectés</div>
+            </div>
             <ul id="players"></ul>
         </div>
         
         <div class="result" id="result">
-            <p class="status">En attente de connexion...</p>
+            <p class="status loading-dots">En attente de connexion</p>
         </div>
+        
+        <footer class="app-footer">
+            <p>Jeu d'imposteur à 3 joueurs - <span class="emoji">🎭</span> Amusez-vous bien !</p>
+        </footer>
     </div>
 
     <script src="app.js"></script>

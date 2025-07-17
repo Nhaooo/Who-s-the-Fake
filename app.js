@@ -12,6 +12,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const serverUrlGroup = document.getElementById('server-url-group');
     const playerIdGroup = document.getElementById('player-id-group');
     
+    // Liste des noms d'animaux pour l'affichage
+    const animalNames = [
+        'Panda', 'Lion', 'Tigre', 'Éléphant', 'Girafe', 'Zèbre', 'Koala', 'Kangourou',
+        'Dauphin', 'Baleine', 'Requin', 'Tortue', 'Crocodile', 'Pingouin', 'Hibou', 'Aigle',
+        'Renard', 'Loup', 'Ours', 'Singe', 'Gorille', 'Chimpanzé', 'Perroquet', 'Flamant',
+        'Loutre', 'Castor', 'Raton', 'Écureuil', 'Hérisson', 'Chauve-souris', 'Lynx', 'Jaguar'
+    ];
+    
+    // Dictionnaire pour stocker les noms d'animaux attribués aux joueurs
+    const playerAnimals = {};
+    
     // URL du serveur par défaut (URL de Render)
     const DEFAULT_SERVER_URL = 'https://who-s-the-fake.onrender.com';
     
@@ -36,7 +47,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Fonction pour mettre à jour le résultat
     const updateResult = (message, isError = false) => {
         const className = isError ? 'error' : 'status';
-        resultDiv.innerHTML = `<p class="${className}">${message}</p>`;
+        const loadingClass = !isError ? 'loading-dots' : '';
+        resultDiv.innerHTML = `<p class="${className} ${loadingClass}">${message}</p>`;
         
         // Afficher le résultat uniquement s'il y a un message
         if (message) {
@@ -63,20 +75,68 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Mise à jour de la liste des joueurs:', players);
         console.log('Joueur actuel:', currentPlayerId);
         
+        // Stocker les joueurs actuels pour détecter les nouveaux
+        const currentPlayers = Array.from(playersList.querySelectorAll('li')).map(li => li.dataset.playerId);
+        
         playersList.innerHTML = '';
         
         players.forEach(player => {
+            // Attribuer un nom d'animal si ce n'est pas déjà fait
+            if (!playerAnimals[player]) {
+                const randomIndex = Math.floor(Math.random() * animalNames.length);
+                playerAnimals[player] = animalNames[randomIndex];
+            }
+            
             const li = document.createElement('li');
-            li.textContent = player;
+            li.dataset.playerId = player; // Stocker l'ID complet comme attribut de données
+            
+            // Vérifier si c'est un nouveau joueur
+            const isNewPlayer = !currentPlayers.includes(player) && currentPlayers.length > 0;
+            if (isNewPlayer) {
+                li.classList.add('new-player');
+                // Supprimer la classe après l'animation
+                setTimeout(() => {
+                    li.classList.remove('new-player');
+                }, 2000);
+            }
+            
+            const animalIcon = document.createElement('span');
+            animalIcon.className = 'animal-icon';
+            animalIcon.innerHTML = '<i class="fas fa-paw"></i>';
+            
+            const playerName = document.createElement('span');
+            playerName.className = 'player-name';
+            playerName.textContent = playerAnimals[player];
+            
+            // Ajouter l'ID réel en petit et discret
+            const playerId = document.createElement('span');
+            playerId.className = 'player-id';
+            playerId.textContent = player.substring(0, 8); // Tronquer l'ID pour qu'il soit plus court
+            
+            li.appendChild(animalIcon);
+            li.appendChild(playerName);
+            li.appendChild(playerId);
             
             // Mettre en évidence le joueur actuel
             if (player === currentPlayerId && currentPlayerId) {
                 li.classList.add('current-player');
-                li.textContent += ' (vous)';
+                playerName.textContent += ' (vous)';
             }
             
             playersList.appendChild(li);
         });
+        
+        // Afficher le nombre de joueurs connectés
+        const playersCount = document.createElement('div');
+        playersCount.className = 'players-count';
+        playersCount.innerHTML = `<i class="fas fa-users"></i> ${players.length} joueur${players.length > 1 ? 's' : ''} connecté${players.length > 1 ? 's' : ''}`;
+        
+        // Ajouter le compteur avant la liste
+        const playersListHeader = document.querySelector('.players-list-header');
+        if (playersListHeader) {
+            playersListHeader.innerHTML = '';
+            playersListHeader.appendChild(playersCount);
+        }
     };
     
     // Fonction pour vérifier l'état de la session
@@ -91,11 +151,10 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             // Utiliser l'endpoint /players pour obtenir la liste des joueurs
-            console.log('Vérification de l\'état de la session:', `${serverUrl}/players?sid=${sessionId}`);
+            // Vérification de l'état de la session
             const response = await fetch(`${serverUrl}/players?sid=${sessionId}`, {
                 mode: 'cors'
             });
-            console.log('Réponse du serveur (checkSessionStatus):', response.status, response.statusText);
             const data = await response.json();
             
             if (response.ok) {
@@ -136,16 +195,16 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
+        // Ajouter la classe loading au bouton
+        joinBtn.classList.add('loading');
+        
         try {
             updateResult('Connexion en cours...');
-            console.log('Tentative de connexion à:', `${serverUrl}/join`);
-            
+            document.querySelector('.status').classList.add('loading-dots');
             // Vérifier si le serveur est accessible
             try {
                 const pingResponse = await fetch(`${serverUrl}`, { mode: 'cors' });
-                console.log('Ping du serveur:', pingResponse.status, pingResponse.statusText);
             } catch (pingError) {
-                console.error('Erreur lors du ping du serveur:', pingError);
                 updateResult(`Erreur de connexion au serveur: ${pingError.message}. Vérifiez l'URL du serveur.`, true);
                 return;
             }
@@ -159,7 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 mode: 'cors'
             });
             
-            console.log('Réponse du serveur:', response.status, response.statusText);
+            // Traitement de la réponse
             const data = await response.json();
             
             if (response.ok) {
@@ -167,13 +226,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentPlayerId = playerId;
                 updateResult(`Connexion réussie! ${data.playersCount}/3 joueurs dans la session`);
                 
-                // Afficher l'ID du joueur
-                playerIdGroup.classList.remove('hidden');
+                // Masquer l'ID du joueur après connexion
+                playerIdGroup.classList.add('hidden');
+                
+                // Masquer le champ de session après connexion
+                document.querySelector('.form-group').classList.add('hidden');
                 
                 // Mettre à jour la liste des joueurs
                 if (data.playersList) {
                     updatePlayersList(data.playersList);
-                    console.log('Liste des joueurs après connexion:', data.playersList);
                 }
                 
                 if (data.isReady) {
@@ -186,13 +247,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Assurer que le polling est actif pour tous les joueurs
                 if (!pollingInterval) {
                     pollingInterval = setInterval(checkSessionStatus, 2000);
-                    console.log('Démarrage du polling après connexion');
                 }
             } else {
                 updateResult(`Erreur: ${data.error}`, true);
             }
         } catch (error) {
             updateResult(`Erreur de connexion: ${error.message}`, true);
+        } finally {
+            // Retirer la classe loading du bouton
+            joinBtn.classList.remove('loading');
         }
     };
     
@@ -205,13 +268,12 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             // Masquer les boutons et afficher un message de chargement
             getWordBtn.disabled = true;
-            getWordBtn.textContent = 'Chargement...';
+            getWordBtn.classList.add('loading');
             
-            console.log('Tentative de récupération du mot à:', `${serverUrl}/word?sid=${sessionId}&playerId=${playerId}`);
+            // Récupération du mot
             const response = await fetch(`${serverUrl}/word?sid=${sessionId}&playerId=${playerId}`, {
                 mode: 'cors'
             });
-            console.log('Réponse du serveur (getWord):', response.status, response.statusText);
             const data = await response.json();
             
             if (response.ok && data.word) {
@@ -221,6 +283,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Masquer le bouton de récupération du mot
                 getWordBtn.style.display = 'none';
+                
+                // Lancer les confettis pour célébrer
+                if (typeof confetti === 'function') {
+                    confetti({
+                        particleCount: 100,
+                        spread: 70,
+                        origin: { y: 0.6 },
+                        colors: ['#4361ee', '#4cc9f0', '#f72585']
+                    });
+                }
                 
                 // Ajouter une explication sur le jeu dans le wordDisplay
                 const gameRules = document.createElement('div');
@@ -236,10 +308,12 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 updateResult(`Erreur: ${data.error}`, true);
                 getWordBtn.disabled = false;
-                getWordBtn.textContent = 'Récupérer mon mot';
+                getWordBtn.classList.remove('loading');
             }
         } catch (error) {
             updateResult(`Erreur lors de la récupération du mot: ${error.message}`, true);
+            getWordBtn.disabled = false;
+            getWordBtn.classList.remove('loading');
         }
     };
     
@@ -275,6 +349,12 @@ document.addEventListener('DOMContentLoaded', () => {
     playerIdInput.addEventListener('dblclick', () => {
         playerIdInput.value = generatePlayerId();
         playerIdInput.readOnly = false;
+        
+        // Animation subtile pour indiquer le changement
+        playerIdInput.classList.add('highlight');
+        setTimeout(() => {
+            playerIdInput.classList.remove('highlight');
+        }, 1000);
     });
     
     // Afficher/masquer les éléments avancés avec un double-clic sur le titre
@@ -289,11 +369,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const serverUrl = serverUrlInput.value.trim();
         
         try {
-            console.log('Vérification du statut du serveur:', serverUrl);
+            // Vérification du statut du serveur
             const response = await fetch(serverUrl, {
                 mode: 'cors'
             });
-            console.log('Réponse du serveur (checkServerStatus):', response.status, response.statusText);
             return response.ok;
         } catch (error) {
             console.error('Erreur lors de la vérification du serveur:', error);
