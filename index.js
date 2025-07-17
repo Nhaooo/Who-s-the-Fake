@@ -6,28 +6,10 @@ const fetch = require('node-fetch');
 
 const app = express();
 
-// Configuration CORS pour accepter les requêtes depuis GitHub Pages et d'autres domaines
+// Configuration CORS pour accepter les requêtes de toutes les origines
 app.use(cors({
-  origin: function(origin, callback) {
-    // Autoriser les requêtes sans origine (comme les appels d'API mobile ou Postman)
-    if (!origin) return callback(null, true);
-    
-    // Liste des origines autorisées
-    const allowedOrigins = [
-      'https://noahj.github.io',
-      'http://localhost:3000',
-      // Ajoutez d'autres origines si nécessaire
-    ];
-    
-    // Vérifier si l'origine de la requête est autorisée
-    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
-      callback(null, true);
-    } else {
-      callback(new Error('Non autorisé par CORS'));
-    }
-  },
-  methods: ['GET', 'POST'],
-  credentials: true
+  origin: '*', // Accepter toutes les origines
+  methods: ['GET', 'POST']
 }));
 
 app.use(express.json());

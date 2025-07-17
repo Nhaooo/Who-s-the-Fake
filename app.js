@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const playerIdGroup = document.getElementById('player-id-group');
     
     // URL du serveur par défaut (URL de Render)
-    const DEFAULT_SERVER_URL = 'https://whos-the-fake.onrender.com';
+    const DEFAULT_SERVER_URL = 'https://who-s-the-fake.onrender.com';
     
     // Définir l'URL du serveur par défaut
     if (!serverUrlInput.value) {
@@ -91,7 +91,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             // Utiliser l'endpoint /players pour obtenir la liste des joueurs
-            const response = await fetch(`${serverUrl}/players?sid=${sessionId}`);
+            console.log('Vérification de l\'état de la session:', `${serverUrl}/players?sid=${sessionId}`);
+            const response = await fetch(`${serverUrl}/players?sid=${sessionId}`, {
+                mode: 'cors'
+            });
+            console.log('Réponse du serveur (checkSessionStatus):', response.status, response.statusText);
             const data = await response.json();
             
             if (response.ok) {
@@ -134,15 +138,28 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             updateResult('Connexion en cours...');
+            console.log('Tentative de connexion à:', `${serverUrl}/join`);
+            
+            // Vérifier si le serveur est accessible
+            try {
+                const pingResponse = await fetch(`${serverUrl}`, { mode: 'cors' });
+                console.log('Ping du serveur:', pingResponse.status, pingResponse.statusText);
+            } catch (pingError) {
+                console.error('Erreur lors du ping du serveur:', pingError);
+                updateResult(`Erreur de connexion au serveur: ${pingError.message}. Vérifiez l'URL du serveur.`, true);
+                return;
+            }
             
             const response = await fetch(`${serverUrl}/join`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ sid: sessionId, playerId })
+                body: JSON.stringify({ sid: sessionId, playerId }),
+                mode: 'cors'
             });
             
+            console.log('Réponse du serveur:', response.status, response.statusText);
             const data = await response.json();
             
             if (response.ok) {
@@ -190,7 +207,11 @@ document.addEventListener('DOMContentLoaded', () => {
             getWordBtn.disabled = true;
             getWordBtn.textContent = 'Chargement...';
             
-            const response = await fetch(`${serverUrl}/word?sid=${sessionId}&playerId=${playerId}`);
+            console.log('Tentative de récupération du mot à:', `${serverUrl}/word?sid=${sessionId}&playerId=${playerId}`);
+            const response = await fetch(`${serverUrl}/word?sid=${sessionId}&playerId=${playerId}`, {
+                mode: 'cors'
+            });
+            console.log('Réponse du serveur (getWord):', response.status, response.statusText);
             const data = await response.json();
             
             if (response.ok && data.word) {
@@ -268,9 +289,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const serverUrl = serverUrlInput.value.trim();
         
         try {
-            const response = await fetch(serverUrl);
+            console.log('Vérification du statut du serveur:', serverUrl);
+            const response = await fetch(serverUrl, {
+                mode: 'cors'
+            });
+            console.log('Réponse du serveur (checkServerStatus):', response.status, response.statusText);
             return response.ok;
         } catch (error) {
+            console.error('Erreur lors de la vérification du serveur:', error);
             return false;
         }
     };
