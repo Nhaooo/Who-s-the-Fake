@@ -12,16 +12,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const serverUrlGroup = document.getElementById('server-url-group');
     const playerIdGroup = document.getElementById('player-id-group');
     
-    // Liste des noms d'animaux pour l'affichage
-    const animalNames = [
-        'Panda', 'Lion', 'Tigre', 'Éléphant', 'Girafe', 'Zèbre', 'Koala', 'Kangourou',
-        'Dauphin', 'Baleine', 'Requin', 'Tortue', 'Crocodile', 'Pingouin', 'Hibou', 'Aigle',
-        'Renard', 'Loup', 'Ours', 'Singe', 'Gorille', 'Chimpanzé', 'Perroquet', 'Flamant',
-        'Loutre', 'Castor', 'Raton', 'Écureuil', 'Hérisson', 'Chauve-souris', 'Lynx', 'Jaguar'
-    ];
+    // Catégories d'animaux pour l'affichage coordonné
+    const animalCategories = {
+        'félins': ['Lion', 'Tigre', 'Panthère', 'Guépard', 'Lynx', 'Jaguar', 'Puma', 'Léopard'],
+        'canidés': ['Loup', 'Renard', 'Chacal', 'Coyote', 'Dingo', 'Fennec', 'Lycaon', 'Chien'],
+        'oiseaux': ['Aigle', 'Faucon', 'Hibou', 'Perroquet', 'Colibri', 'Flamant', 'Pingouin', 'Autruche'],
+        'marins': ['Dauphin', 'Baleine', 'Requin', 'Méduse', 'Pieuvre', 'Crabe', 'Homard', 'Phoque'],
+        'reptiles': ['Tortue', 'Lézard', 'Caméléon', 'Crocodile', 'Alligator', 'Iguane', 'Cobra', 'Python'],
+        'primates': ['Gorille', 'Chimpanzé', 'Orang-outan', 'Babouin', 'Macaque', 'Gibbon', 'Mandrill', 'Capucin'],
+        'rongeurs': ['Écureuil', 'Castor', 'Raton', 'Marmotte', 'Hamster', 'Chinchilla', 'Gerbille', 'Souris'],
+        'herbivores': ['Éléphant', 'Girafe', 'Zèbre', 'Rhinocéros', 'Hippopotame', 'Bison', 'Antilope', 'Gazelle']
+    };
     
     // Dictionnaire pour stocker les noms d'animaux attribués aux joueurs
     const playerAnimals = {};
+    
+    // Dictionnaire pour stocker la catégorie d'animaux par session
+    const sessionCategories = {};
     
     // URL du serveur par défaut (URL de Render)
     const DEFAULT_SERVER_URL = 'https://who-s-the-fake.onrender.com';
@@ -36,9 +43,28 @@ document.addEventListener('DOMContentLoaded', () => {
     let hasJoined = false;
     let currentPlayerId = '';
     
-    // Générer un ID de joueur unique
+    // Générer un ID de joueur unique avec un nom d'animal
     const generatePlayerId = () => {
-        return 'player-' + Math.random().toString(36).substring(2, 9);
+        // Liste d'animaux en français
+        const animaux = [
+            // Mammifères
+            "Tigre", "Lion", "Éléphant", "Girafe", "Zèbre", "Panda", "Koala", "Kangourou", "Loup", "Renard", 
+            "Ours", "Écureuil", "Hérisson", "Loutre", "Blaireau", "Raton", "Belette", "Furet", "Castor", "Bison",
+            // Oiseaux
+            "Aigle", "Faucon", "Hibou", "Perroquet", "Colibri", "Flamant", "Pingouin", "Autruche", "Paon", "Cygne",
+            // Reptiles et amphibiens
+            "Tortue", "Lézard", "Caméléon", "Grenouille", "Salamandre", "Crocodile", "Alligator", "Iguane", "Cobra", "Python",
+            // Poissons et créatures marines
+            "Dauphin", "Baleine", "Requin", "Méduse", "Pieuvre", "Crabe", "Homard", "Crevette", "Étoile", "Corail",
+            // Insectes et autres
+            "Papillon", "Abeille", "Coccinelle", "Libellule", "Scarabée", "Mante", "Fourmi", "Araignée", "Scorpion", "Escargot"
+        ];
+        
+        // Choisir un animal aléatoire
+        const animal = animaux[Math.floor(Math.random() * animaux.length)];
+        
+        // Ajouter un numéro aléatoire pour garantir l'unicité
+        return animal + '-' + Math.floor(Math.random() * 1000);
     };
     
     // Initialiser l'ID du joueur
@@ -80,11 +106,41 @@ document.addEventListener('DOMContentLoaded', () => {
         
         playersList.innerHTML = '';
         
+        // Obtenir l'ID de session actuel
+        const sessionId = sessionIdInput.value.trim();
+        
+        // Si c'est une nouvelle session, choisir une catégorie d'animaux
+        if (!sessionCategories[sessionId]) {
+            const categoryNames = Object.keys(animalCategories);
+            const randomCategoryIndex = Math.floor(Math.random() * categoryNames.length);
+            sessionCategories[sessionId] = categoryNames[randomCategoryIndex];
+            console.log(`Nouvelle session ${sessionId} avec catégorie: ${sessionCategories[sessionId]}`);
+        }
+        
+        // Obtenir la catégorie d'animaux pour cette session
+        const categoryName = sessionCategories[sessionId];
+        const categoryAnimals = animalCategories[categoryName];
+        
         players.forEach(player => {
             // Attribuer un nom d'animal si ce n'est pas déjà fait
             if (!playerAnimals[player]) {
-                const randomIndex = Math.floor(Math.random() * animalNames.length);
-                playerAnimals[player] = animalNames[randomIndex];
+                // Trouver un animal non utilisé dans cette session
+                const usedAnimals = players
+                    .filter(p => p !== player && playerAnimals[p])
+                    .map(p => playerAnimals[p]);
+                
+                const availableAnimals = categoryAnimals.filter(animal => !usedAnimals.includes(animal));
+                
+                // Si tous les animaux sont utilisés, en choisir un au hasard
+                if (availableAnimals.length === 0) {
+                    const randomIndex = Math.floor(Math.random() * categoryAnimals.length);
+                    playerAnimals[player] = categoryAnimals[randomIndex];
+                } else {
+                    const randomIndex = Math.floor(Math.random() * availableAnimals.length);
+                    playerAnimals[player] = availableAnimals[randomIndex];
+                }
+                
+                console.log(`Joueur ${player} a reçu l'animal: ${playerAnimals[player]} (catégorie: ${categoryName})`);
             }
             
             const li = document.createElement('li');
